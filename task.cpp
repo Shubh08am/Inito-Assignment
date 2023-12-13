@@ -257,7 +257,7 @@ It handles absolute paths ("/"), parent directory (".."), and subdirectories.
             cout << "Unable to save state to file." << endl;
         }
     }
-
+/*This function loads the file system state from a file, creating directories and files based on the information stored in the file.*/
     void loadState(const string& path) {
         ifstream inFile(path);
         if (inFile.is_open()) {
