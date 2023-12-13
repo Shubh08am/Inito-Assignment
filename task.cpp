@@ -1,4 +1,3 @@
-```
 #include <bits/stdc++.h>
 #include <fstream>
 #include <sstream>
@@ -379,4 +378,3 @@ int main() {
     }
     return 0;
 }
-```
