@@ -4,28 +4,44 @@ Dockerfile that you can use to containerize the C++ in-memory file system implem
 # Use an official Ubuntu runtime as a base image
 FROM ubuntu:latest
 
+This line specifies the base image for the Docker container. In this case, it uses the latest version of the official Ubuntu image as the starting point.
+
 # Set the working directory to /app
 WORKDIR /app
 
+This line sets the working directory inside the container to /app. All subsequent commands will be executed in this directory.
+
 # Copy the current directory contents into the container at /app
 COPY . /app
+
+This line copies all the files and directories from the current directory on your host machine to the /app directory inside the container.
 
 # Install necessary dependencies
 RUN apt-get update && \
     apt-get install -y build-essential
 
+These lines update the package list and install the build-essential package, which includes essential tools such as gcc and g++ needed for compiling C++ code.
+
 # Compile the C++ code
 RUN g++ -o filesystem main.cpp
+
+This line compiles the C++ code (main.cpp) and generates an executable named filesystem. The resulting executable will be located in the /app directory inside the container.
 
 # Set up entry point
 CMD ["./filesystem"]
 
-To build the Docker image, save the Dockerfile in the same directory as your C++ source code, and run the following command in the terminal:
+This line sets the default command to run when the container starts. In this case, it specifies that the filesystem executable should be executed.
+
+# How to Use:
+1. Save the Dockerfile in the same directory as your C++ source code (main.cpp).
+
+2. Open a terminal in the same directory as the Dockerfile.
+
+3. Run the following command to build the Docker image:
 docker build -t in-memory-file-system .
-This will build a Docker image named "in-memory-file-system."
 
-To run the Docker container:
-docker run -it in-memory-file-system
-This assumes that your C++ source code is in a file named main.cpp. If your source code file has a different name, make sure to update the Dockerfile accordingly.
+4. After the build is complete, run the Docker container:
+ docker run -it in-memory-file-system
 
-Note: This Dockerfile assumes a simple scenario and might need adjustments based on the specific setup and dependencies of your C++ code. If you have additional dependencies or specific requirements, you may need to customize the Dockerfile further.
+This Dockerfile simplifies the setup process by encapsulating the C++ compilation and execution within a Docker container. 
+It ensures that the containerized environment is isolated and contains all the necessary dependencies for running the C++ program.
