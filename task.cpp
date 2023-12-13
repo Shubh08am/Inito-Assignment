@@ -3,6 +3,9 @@
 #include <sstream>
 using namespace std;
 
+/*This defines an abstract base class Entry representing either a directory or a file.
+It contains pure virtual functions and some common functions that need to be implemented by its derived classes.
+*/
 class Entry {
 public:
     string name;
@@ -27,6 +30,10 @@ public:
     }
 };
 
+/*This defines a class Directory that inherits from Entry.
+It represents a directory and contains a vector of Entry pointers for its contents (entries).
+It also has a pointer to its parent directory (parent).
+*/
 class Directory : public Entry {
 private:
     vector<Entry*> entries;
@@ -39,7 +46,7 @@ public:
             delete entry;
         }
     }
-
+/*This function prints the names of entries (files and subdirectories) within the current directory.*/
     void listEntries() const override {
         for (const Entry* entry : entries) {
             cout << entry->name << " ";
@@ -47,6 +54,9 @@ public:
         cout << endl;
     }
 
+/*This function returns an Entry pointer given a path (file or directory name).
+It handles special cases like ".." (parent directory) and "." (current directory).
+*/
     Entry* getEntryByPath(const string& path) override {
         if (path == "..") {
             return parent;
@@ -62,18 +72,19 @@ public:
         }
     }
 
+/*This function removes an entry from the current directory.*/
     void removeEntry(Entry* entry) override {
         auto it = find(entries.begin(), entries.end(), entry);
         if (it != entries.end()) {
             entries.erase(it);
         }
     }
-
+/*This function adds an entry to the current directory.*/
     void addEntry(Entry* entry) override {
         entry->parent = this;
         entries.push_back(entry);
     }
-
+/*This function returns the full path of the current directory, including its parent directories.*/
     string getFullPath() const override {
         if (parent) {
             return parent->getFullPath() + "/" + name;
@@ -81,7 +92,7 @@ public:
             return "/";
         }
     }
-
+/*This function creates a deep copy of the current directory and its contents.*/
     Entry* copy() const override {
         Directory* newDirectory = new Directory(name);
         for (const Entry* entry : entries) {
@@ -89,16 +100,17 @@ public:
         }
         return newDirectory;
     }
-
+/*This function returns the type of the entry, indicating that it's a directory.*/
     string getType() const override {
         return "Directory";
     }
-
+/*This function provides a string representation of the directory.*/
     string to_string() const override {
         return "Directory: " + name;
     }
 };
 
+/*This defines a class File that inherits from Entry. It represents a file and contains a string for its content.*/
 class File : public Entry {
 private:
     string content;
@@ -108,11 +120,11 @@ public:
     void writeToFile(const string& c) override {
         content = c;
     }
-
+/*This function returns the content of the file.*/
     string readFromFile() const override {
         return content;
     }
-
+/*This function searches for a pattern in the content of the file and prints matching lines.*/
     void searchInFile(const string& pattern) const override {
         istringstream iss(content);
         string line;
@@ -122,37 +134,43 @@ public:
             }
         }
     }
-
+/*This function creates a deep copy of the file.*/
     Entry* copy() const override {
         return new File(name, content);
     }
-
+/*This function returns the type of the entry, indicating that it's a file.*/
     string getType() const override {
         return "File";
     }
-
+/*This function provides a string representation of the file.*/
     string to_string() const override {
         return "File: " + name;
     }
 };
 
+/*This defines a class FileSystem representing the entire file system.
+It contains pointers to the root directory (root) and the current working directory (currentDir).
+*/
 class FileSystem {
 private:
     Directory* root;
     Directory* currentDir;
 
 public:
+/*The constructor initializes the file system with a root directory ("/") and sets the current directory to the root.*/
     FileSystem() : root(new Directory("/")), currentDir(root) {}
 
     ~FileSystem() {
         delete root;
     }
-
+/*This function creates a new directory within the current directory.*/
     void mkdir(const string& dirname) {
         Directory* newDir = new Directory(dirname);
         currentDir->addEntry(newDir);
     }
-
+/*This function changes the current directory based on the provided path.
+It handles absolute paths ("/"), parent directory (".."), and subdirectories.
+*/
     void cd(const string& path) {
         if (path == "/") {
             currentDir = root;
@@ -163,14 +181,14 @@ public:
             }
         }
     }
-
+/*This function lists the entries (files and subdirectories) within the specified directory (default is the current directory).*/
     void ls(const string& path = ".") const {
         Entry* entry = currentDir->getEntryByPath(path);
         if (entry) {
             entry->listEntries();
         }
     }
-
+/*This function searches for a pattern within the content of a file and prints matching lines.*/
     void grep(const string& pattern, const string& filename) const {
         Entry* entry = currentDir->getEntryByPath(filename);
         if (entry && entry->getType() == "File") {
@@ -179,7 +197,7 @@ public:
             cout << "File not found." << endl;
         }
     }
-
+/*This function displays the content of a file.*/
     void cat(const string& filename) const {
         Entry* entry = currentDir->getEntryByPath(filename);
         if (entry && entry->getType() == "File") {
@@ -188,12 +206,12 @@ public:
             cout << "File not found." << endl;
         }
     }
-
+/*This function creates a new empty file within the current directory.*/
     void touch(const string& filename) {
         File* newFile = new File(filename);
         currentDir->addEntry(newFile);
     }
-
+/*This function writes text content to a file or creates a new file with the specified content.*/
     void echo(const string& content, const string& filename) {
         Entry* entry = currentDir->getEntryByPath(filename);
         if (entry && entry->getType() == "File") {
@@ -202,7 +220,7 @@ public:
             cout << "File not found." << endl;
         }
     }
-
+/*This function moves a file or directory from the source path to the destination path.*/
     void mv(const string& source, const string& destination) {
         Entry* sourceEntry = currentDir->getEntryByPath(source);
         Directory* destinationDir = dynamic_cast<Directory*>(currentDir->getEntryByPath(destination));
@@ -212,7 +230,7 @@ public:
             currentDir->removeEntry(sourceEntry);
         }
     }
-
+/*This function copies a file or directory from the source path to the destination path.*/
     void cp(const string& source, const string& destination) {
         Entry* sourceEntry = currentDir->getEntryByPath(source);
         Directory* destinationDir = dynamic_cast<Directory*>(currentDir->getEntryByPath(destination));
@@ -221,7 +239,7 @@ public:
             destinationDir->addEntry(sourceEntry->copy());
         }
     }
-
+/*This function removes a file or directory from the file system.*/
     void rm(const string& path) {
         Entry* entry = currentDir->getEntryByPath(path);
         if (entry) {
@@ -229,7 +247,7 @@ public:
             delete entry;
         }
     }
-
+/*This function saves the current state of the file system to a file.*/
     void saveState(const string& path) const {
         ofstream outFile(path);
         if (outFile.is_open()) {
